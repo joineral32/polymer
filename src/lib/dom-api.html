@@ -593,6 +593,61 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     };
 
+    Object.defineProperties(DomApi.prototype, {
+      activeElement: {
+        configurable: true,
+        get: function() {
+          var ownerDocument = this.node.ownerDocument;
+
+          // Shadow DOM
+          if (Polymer.Settings.useShadow) {
+            if (ownerDocument || !window.ShadowDOMPolyfill) {
+              return this.node.activeElement;
+            } else {
+              return window.ShadowDOMPolyfill.wrapIfNeeded(this.node).activeElement;
+            }
+          }
+
+          // Shady DOM
+
+          var trueDocument = ownerDocument || this.node;
+
+          // Not a document or shady root.
+          if (ownerDocument && !this.node._isShadyRoot) {
+            return this.node.activeElement;
+          }
+
+          var active = trueDocument.activeElement;
+          if (!active) return null;
+
+          // `this.node` is either a document or shady root; iterate upwards
+          // to find the active element's most shallow host (relative to this
+          // node or its containing document).
+          var activeRoot = Polymer.dom(active).getOwnerRoot();
+          while (activeRoot && activeRoot !== this.node) {
+            active = activeRoot.host;
+            activeRoot = Polymer.dom(active).getOwnerRoot();
+          }
+
+          // This node is a document and we’ve reached it; we should return the
+          // active element's most shallow host.
+          if (!ownerDocument && !activeRoot) {
+            return active;
+          }
+
+          // This node is a non-document shady root and we've reached it; the
+          // active element is a (potentially deep) descendant of this node.
+          if (ownerDocument && activeRoot === this.node) {
+            return active;
+          }
+
+          // The active element does not exist within this shady root or its
+          // deep descendants.
+          return null;
+        }
+      }
+    });
+
     // changes and accessors...
     if (!Settings.useShadow) {
 
