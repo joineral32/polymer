@@ -51,8 +51,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var skipRules = false;
         if (node.type === this.ruleTypes.STYLE_RULE) {
           callback(node);
-        } else if (node.type === this.ruleTypes.KEYFRAMES_RULE ||
-            node.type === this.ruleTypes.MIXIN_RULE) {
+        } else if (node.type === this.ruleTypes.MIXIN_RULE) {
           skipRules = true;
         }
         var r$ = node.rules;

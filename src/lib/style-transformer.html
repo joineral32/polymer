@@ -147,9 +147,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       // transforms a css rule to a scoped rule.
       _transformRule: function(rule, transformer, scope, hostScope) {
+        // The selector can only be transformed if it is a selector; a
+        // selector-like ruleset that appears within a `@keyframes` rule is
+        // actually a keyframe, not a selector:
+        var selectorCanTransform =
+          !rule.parent ||
+          rule.parent.ruleType !== Polymer.StyleUtil.ruleTypes.KEYFRAMES_RULE;
         var p$ = rule.selector.split(COMPLEX_SELECTOR_SEP);
-        for (var i=0, l=p$.length, p; (i<l) && (p=p$[i]); i++) {
-          p$[i] = transformer.call(this, p, scope, hostScope);
+        if (selectorCanTransform) {
+          for (var i=0, l=p$.length, p; (i<l) && (p=p$[i]); i++) {
+            p$[i] = transformer.call(this, p, scope, hostScope);
+          }
         }
         // NOTE: save transformedSelector for subsequent matching of elements
         // against selectors (e.g. when calculating style properties)
